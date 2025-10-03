@@ -13,7 +13,7 @@ build/
 dist/
 
 # Entornos
-.env
+backend/.env
 
 # Editor
 .vscode/
