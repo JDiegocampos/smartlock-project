@@ -7,7 +7,7 @@ router = DefaultRouter()
 router.register('locks', LockViewSet, basename='lock')
 router.register('pins', PinViewSet)
 router.register('devices', DeviceViewSet)
-router.register('access-logs', AccessLogViewSet)
+router.register(r'accesslogs', AccessLogViewSet, basename='accesslog')
 router.register('roles', RoleViewSet)
 router.register('user-roles', UserRoleViewSet)
 

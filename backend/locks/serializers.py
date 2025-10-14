@@ -59,13 +59,23 @@ class DeviceSerializer(serializers.ModelSerializer):
 
 
 class AccessLogSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    device = DeviceSerializer(read_only=True)
-    lock = serializers.StringRelatedField(read_only=True)
+    lock_uuid = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = AccessLog
-        fields = '__all__'
+        fields = ['id', 'lock', 'lock_uuid', 'user', 'device', 'access_type', 'result', 'timestamp', 'details']
+        read_only_fields = ['id', 'timestamp', 'lock', 'user']
+
+    def create(self, validated_data):
+        # Extrae el UUID enviado
+        uuid = validated_data.pop('lock_uuid', None)
+        try:
+            lock = Lock.objects.get(uuid=uuid)
+        except Lock.DoesNotExist:
+            raise serializers.ValidationError("Lock UUID inválido.")
+
+        validated_data['lock'] = lock
+        return super().create(validated_data)
 
 
 class UserRoleSerializer(serializers.ModelSerializer):

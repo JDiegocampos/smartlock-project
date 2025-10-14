@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_simplejwt.token_blacklist',  # opcional pero recomendado si rotas refresh tokens
+    'rest_framework_simplejwt.token_blacklist', 
+    'accounts.apps.AccountsConfig',
     'corsheaders',
     'locks',
 ]

@@ -120,19 +120,17 @@ class DeviceViewSet(viewsets.ModelViewSet):
         serializer.save(user=user)
 
 
-class AccessLogViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    Solo lectura: los registros no deben crearse manualmente.
-    """
+class AccessLogViewSet(viewsets.ModelViewSet):
     queryset = AccessLog.objects.all().order_by('-timestamp')
     serializer_class = AccessLogSerializer
-    permission_classes = [permissions.IsAuthenticated, HasLockRolePermission]
+    permission_classes = [permissions.AllowAny]  # ⚠️ luego lo cambiamos a algo más seguro
 
     def get_queryset(self):
-        user = self.request.user
-        return AccessLog.objects.filter(
-            Q(lock__owner=user) | Q(lock__user_roles__user=user)
-        ).distinct()
+        # Permite filtrar registros por cerradura
+        lock_uuid = self.request.query_params.get('lock_uuid')
+        if lock_uuid:
+            return AccessLog.objects.filter(lock__uuid=lock_uuid).order_by('-timestamp')
+        return super().get_queryset()
 
 
 class UserRoleViewSet(viewsets.ModelViewSet):
