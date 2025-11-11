@@ -1,3 +1,4 @@
+# backend/accounts/serializers.py
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile
@@ -20,22 +21,15 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     Serializador para registrar nuevos usuarios.
     Crea el usuario y actualiza el rol en el Profile (creado automáticamente por el signal).
     """
-    role = serializers.ChoiceField(choices=Profile.ROLE_CHOICES, write_only=True)
-    assigned_role = serializers.SerializerMethodField(read_only=True)
-
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role', 'assigned_role']
+        fields = ['username', 'email', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        role = validated_data.pop('role')
         user = User.objects.create_user(**validated_data)
-
-        # Actualizar el rol en el perfil existente
-        user.profile.role = role
+        user.profile.role = 'guest'
         user.profile.save()
-
         return user
 
     def get_assigned_role(self, obj):
