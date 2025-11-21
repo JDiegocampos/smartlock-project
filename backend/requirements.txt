@@ -10,3 +10,6 @@ PyJWT==2.10.1
 python-decouple==3.8
 sqlparse==0.5.3
 tzdata==2025.2
+pyotp==2.8.0
+qrcode==7.4.2   # opcional, si quieres generar la imagen QR en backend
+Pillow==10.0.0  # si generas imágenes QR

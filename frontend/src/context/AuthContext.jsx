@@ -9,11 +9,15 @@ import {
   getRefreshToken,
   clearTokens,
 } from "../utils/tokenUtils";
+import { tokenChallenge, token2faVerify } from "../api/auth";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // ahora cargamos profile desde API
+  const [user, setUser] = useState(() => {
+    const t = getAccessToken();
+    return t ? decodeToken(t) : null;
+  });
   const [loading, setLoading] = useState(false);
 
   // helper: obtener profile desde backend
@@ -34,15 +38,37 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     setLoading(true);
     try {
-      const res = await api.post("token/", { username, password });
+      const res = await tokenChallenge(username, password);
+      // Esperamos 202 con challenge
+      if (res.status === 202 && res.data?.["2fa_required"]) {
+        const { challenge, must_setup, otpauth_url } = res.data;
+        setLoading(false);
+        return { success: false, twoFactorRequired: true, challenge, must_setup: !!must_setup, otpauth_url: otpauth_url || null };
+      }
+      // Si por alguna razón el backend cambia y devuelve tokens, los manejamos igual
+      if (res.data?.access && res.data?.refresh) {
+        setTokens({ access: res.data.access, refresh: res.data.refresh });
+        setUser(decodeToken(res.data.access));
+        setLoading(false);
+        return { success: true };
+      }
+      setLoading(false);
+      return { success: false, error: "Respuesta inesperada del servidor." };
+    } catch (err) {
+      setLoading(false);
+      return { success: false, error: err.response?.data || err.message };
+    }
+  };
+
+  // Paso 2: verificamos challenge + TOTP y guardamos tokens
+  const verify2fa = async (challenge, code) => {
+    setLoading(true);
+    try {
+      const res = await token2faVerify(challenge, code);
       const { access, refresh } = res.data;
       setTokens({ access, refresh });
-
-      // ahora que tenemos tokens, vamos por el profile real
-      const profile = await fetchProfile();
+      setUser(decodeToken(access));
       setLoading(false);
-
-      if (!profile) return { success: false, error: "No se pudo obtener perfil" };
       return { success: true };
     } catch (err) {
       setLoading(false);
@@ -106,7 +132,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, loading, login, verify2fa, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

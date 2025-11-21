@@ -18,9 +18,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from accounts.views import TokenChallengeView, Token2FAVerifyView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/token/2fa-challenge/', TokenChallengeView.as_view(), name='token_2fa_challenge'),
+    path('api/token/2fa-verify/', Token2FAVerifyView.as_view(), name='token_2fa_verify'),
     path('api/users/', include('accounts.urls')),
     path('api/', include('locks.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

@@ -2,7 +2,25 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Profile
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from .models import TwoFactorConfig
 
+User = get_user_model()
+
+class TwoFactorSetupSerializer(serializers.Serializer):
+    # devuelve otpauth_url para generar QR en frontend
+    otpauth_url = serializers.CharField(read_only=True)
+
+class TwoFactorVerifySerializer(serializers.Serializer):
+    challenge = serializers.CharField()
+    code = serializers.CharField()
+
+class TwoFactorEnableSerializer(serializers.Serializer):
+    code = serializers.CharField()  # used to confirm enabling
+
+class TwoFactorDisableSerializer(serializers.Serializer):
+    code = serializers.CharField()
 
 class UserSerializer(serializers.ModelSerializer):
     """

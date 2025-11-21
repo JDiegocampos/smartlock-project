@@ -21,7 +21,7 @@ import {
   clearTokens,
 } from "../utils/tokenUtils";
 
-const API_BASE = "http://localhost:8000/api/";
+const API_BASE = "https://40llgzg0-8000.use2.devtunnels.ms/api/";
 
 const api = axios.create({
   baseURL: API_BASE,
